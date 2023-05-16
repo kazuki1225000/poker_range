@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BTNのオープンレンジ</title>
+    <style>
+        td {
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #3b7f9a;
+        }
+        .red {
+            background-color: #f55353 !important;
+        }
+        .green {
+            background-color: #59b966 !important;
+        }
+        .deepred {
+            background-color: #ab1717 !important;
+        }
+        .blue {
+            background-color: #3b7f9a !important;
+        
+        }
+        .combo-count {
+            font-size: 14px;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label for="tableTitle">Table Title: </label>
+        <input type="text" id="tableTitle" onchange="updateTableTitle()">
+        <button onclick="resetTable()">Reset</button>
+    </div>
+    <table></table>
+    <div id="comboCount">
+        <span class="red combo-count">Raise: 0%</span>
+        <span class="green combo-count">Call: 0%</span>
+        <span class="deepred combo-count">Allin: 0%</span>
+        <span class="blue combo-count">Fold: 100%</span>
+    </div>
+    <button onclick="exportTable()">Export as Image</button>
+
+    <script>
+        // テーブル要素を取得
+        const table = document.querySelector('table');
+        // コンボ数をカウントするための変数
+        let redComboCount = 0;
+        let greenComboCount = 0;
+        let deepredComboCount = 0;
+        let blueComboCount = 1326;
+
+        // カードの組み合わせを定義
+        const cards = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+
+        // オープンレンジ表のデータを生成
+        const openRangeData = [];
+        for (let i = 0; i < cards.length; i++) {
+            const row = [];
+            for (let j = 0; j < cards.length; j++) {
+                if (i === j) {
+                    row.push({
+                        label: `${cards[i]}${cards[j]}`,
+                        combo: 6
+                    });
+                } else if (i < j) {
+                    row.push({
+                        label: `${cards[i]}${cards[j]}s`,
+                        combo: 4
+                    });
+                } else {
+                    row.push({
+                        label: `${cards[j]}${cards[i]}o`,
+                        combo: 12
+                    });
+                }
+            }
+            openRangeData.push(row);
+        }
+
+        // テーブルの行とセルを生成して追加する関数
+        function generateTable() {
+            for (let i = 0; i < openRangeData.length; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < openRangeData[i].length; j++) {
+                    const cell = document.createElement('td');
+                    cell.textContent = openRangeData[i][j].label;
+                    cell.dataset.combo = openRangeData[i][j].combo;
+row.appendChild(cell);
+}
+table.appendChild(row);
+}
+}
+
+    // セルの色とコンボ数を更新する関数
+    function updateCellColor(cell) {
+        const comboChange = parseInt(cell.dataset.combo);
+        if (cell.classList.contains('red')) {
+            cell.classList.remove('red');
+            cell.classList.add('green');
+            greenComboCount += comboChange;
+            redComboCount -= comboChange;
+        } else if (cell.classList.contains('green')) {
+            cell.classList.remove('green');
+            cell.classList.add('deepred');
+            deepredComboCount += comboChange;
+            greenComboCount -= comboChange;
+            
+        }else if (cell.classList.contains('deepred')) {
+            cell.classList.remove('deepred');
+            cell.classList.add('blue');
+            blueComboCount += comboChange;
+            deepredComboCount -= comboChange;
+        }else {
+            cell.classList.remove('blue');
+            cell.classList.add('red');
+            redComboCount += comboChange;
+            blueComboCount -= comboChange;
+        }
+        updateComboCount();
+    }
+
+    // セルをクリックしたときに色を更新するイベントハンドラ
+    function handleClick(event) {
+        const cell = event.target;
+        updateCellColor(cell);
+    }
+
+    
+
+    // コンボ数を表示する関数
+    function updateComboCount() {
+        const redComboCountElement = document.querySelector('.red.combo-count');
+        const greenComboCountElement = document.querySelector('.green.combo-count');
+        const deepredComboCountElement = document.querySelector('.deepred.combo-count');
+        const blueComboCountElement = document.querySelector('.blue.combo-count');
+        redComboCountElement.textContent = `Raise: ${(100 * redComboCount / 1326).toFixed(2)}%`;
+        greenComboCountElement.textContent = `Call: ${(100 * greenComboCount / 1326).toFixed(2)}%`;
+        deepredComboCountElement.textContent = `Allin: ${(100 * deepredComboCount / 1326).toFixed(2)}%`;
+        blueComboCountElement.textContent = `Fold: ${(100 * blueComboCount / 1326).toFixed(2)}%`;
+    }
+
+    // テーブルのタイトルを更新する関数
+    // function updateTableTitle() {
+    //     const tableTitleInput = document.getElementById('tableTitle');
+    //     const tableTitle = tableTitleInput.value;
+    //     const tableTitleElement = document.createElement('h2');
+    //     tableTitleElement.textContent = tableTitle;
+    //     document.body.insertBefore(tableTitleElement, table);
+    // }
+    function updateTableTitle() {
+    const tableTitleInput = document.getElementById('tableTitle');
+    const tableTitle = tableTitleInput.value;
+    const tableTitleElement = document.querySelector('h2#tableTitle');
+    
+    if (tableTitleElement) {
+        tableTitleElement.textContent = tableTitle;
+    } else {
+        const newTableTitleElement = document.createElement('h2');
+        newTableTitleElement.textContent = tableTitle;
+        newTableTitleElement.id = 'tableTitle';
+        document.body.insertBefore(newTableTitleElement, document.querySelector('table'));
+    }
+}
+
+
+    // テーブルを生成してクリックイベントを追加
+    generateTable();
+    table.addEventListener('click', handleClick);
+
+    // テーブルを画像として書き出す関数
+    function exportTable() {
+        html2canvas(document.body).then(function (canvas) {
+            const tableTitle = document.getElementById('tableTitle').value;
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `${tableTitle}.png`;
+            link.click();
+        });
+    }
+
+    // テーブルをリセットする関数
+    function resetTable() {
+        const cells = document.querySelectorAll('td');
+        cells.forEach(cell => {
+            cell.classList.remove('red', 'green', 'blue', 'deepred');
+        });
+        redComboCount = 0;
+        greenComboCount = 0;
+        deepredComboCount = 0;
+        blueComboCount = 1326;
+        updateComboCount();
+    }
+
+</script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+</body>
+</html>
